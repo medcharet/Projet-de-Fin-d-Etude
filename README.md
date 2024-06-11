@@ -1,8 +1,8 @@
-Based on the provided report on the estimation of the yield curve and Value at Risk (VaR), here is a draft of a README for your GitHub repository:
+Sure, here is the customized README with the copyright statement included:
 
 ---
 
-# Project Title: Yield Curve Modeling and Value at Risk Estimation
+# Yield Curve Modeling and Value at Risk Estimation
 
 ## Overview
 
@@ -60,12 +60,12 @@ In the context of financial risk management, it is crucial to allocate capital t
 
 1. **Clone the repository**:
     ```bash
-    git clone https://github.com/yourusername/your-repo-name.git
+    git clone https://github.com/medcharet/Projet-de-Fin-d-Etude.git
     ```
 
 2. **Navigate to the project directory**:
     ```bash
-    cd your-repo-name
+    cd Projet-de-Fin-d-Etude
     ```
 
 3. **Dependencies**:
@@ -83,5 +83,19 @@ In the context of financial risk management, it is crucial to allocate capital t
 
 We welcome contributions to improve the models and methods used in this project. Please follow the standard GitHub workflow for contributing.
 
+## License
 
-Feel free to customize this README to better suit your project's specifics and requirements.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+---
+
+For more details, please refer to the full project report available in the repository.
+
+---
+
+## Copyright
+
+Copyright © 2024 CHARET Mohamed
+
+---
+
