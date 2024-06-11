@@ -83,9 +83,7 @@ In the context of financial risk management, it is crucial to allocate capital t
 
 We welcome contributions to improve the models and methods used in this project. Please follow the standard GitHub workflow for contributing.
 
-## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ---
 
