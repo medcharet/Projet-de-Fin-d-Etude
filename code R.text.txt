@@ -1,0 +1,178 @@
+
+
+
+
+library(ggplot2)
+library(tidyverse)
+library(readxl)
+library(tseries)
+library(forecast)
+library(dplyr)
+
+
+
+
+
+
+dt="C:/Users/Rajaa/Desktop/stage/Change à terme.xlsx" 
+FEC=read_xlsx(dt)
+head(FEC)
+
+
+###operations sur les taux de change
+
+#importation de la base de donnees de Yahoo Finance
+
+change="C:/Users/Rajaa/Desktop/stage/EURMAD=X.csv"
+tx_change=read.csv(change , sep = ",")
+tx_change=na.omit(tx_change)
+tx_change$Open=as.numeric(tx_change$Open)
+
+#bank almaghreb
+
+#tx_aujourdhui=10.7640
+
+
+
+
+tx_change$log_tx=log(tx_change$Open)
+adf.test(tx_change$log_tx)#non stationnaire
+tx_change$log_diff=c(NA , diff(tx_change$log_tx , lag = 1 ,differences = 1))
+adf.test(tx_change$log_diff[-1]) #stationnaire  , inversible d'ordre 1
+shapiro.test(tx_change$log_diff)
+
+
+plot(tx_change$log_tx, type = "n")
+lines(tx_change$log_tx, type = "l", col = "red")
+plot(tx_change$log_diff[-1], type = "n")
+lines(tx_change$log_diff[-1], type = "l", col = "blue")
+
+
+print(acf(tx_change$log_diff[-1]))
+print(pacf(tx_change$log_diff[-1]))
+
+print(arima(tx_change$log_diff[-1] ,c(2,1,1)))
+
+#estimation des parametres du gbm:
+
+sigma_change=sqrt (var(tx_change$log_diff[-1]))
+b_change=mean(tx_change$log_diff[-1]) + (1/2) * (sigma_change^2)
+
+
+#generer des scenarios aleatoires de taux de change en utilisant la dynamique GBM 
+      #S_t =S0 exp[(b-  0.5 * sigma^2 )t +sigma *B_t] avec B_t le mouvement brownien 
+
+x=rnorm(1000 ,mean = 0,sd = 1)
+y=(b_change- 0.5 * (sigma_change^2)) + sigma_change*x
+tx_aujourdhui=tx_change$Open[1]
+change_demain_simule=tx_aujourdhui *exp(y)
+change_position=as.data.frame(change_demain_simule) 
+
+# on peut faire une simulation du taux de change en utilisant les courbe des taux des devises de la paire echangee.
+      #le taux de change de demain represente exactement la variation au cours du temps des cours des deux devises .
+      # (S/T)_(t)   = (S/T)_(s) *  [ D_E(s,t) /D_S(s,t) ]  -->formule exacte 
+
+      # il faut donc simuler les courbes de taux zero coupon , pour simuler celle du taux de change
+
+
+
+
+###operation sur la vase de donnees FEC
+
+
+
+FEC$Date_de_valeur=as.Date(FEC$Date_de_valeur)
+FEC$Date_arrete=as.Date(FEC$Date_arrete)
+FEC$Date_echeance=as.Date(FEC$Date_echeance)
+
+#trier la base de donnees pour voir si les dates de valeurs sont toutes inferieures a la date  d echeance  
+##FEC_trie = FEC[order(FEC$Date_de_valeur), ]
+
+
+date_aujourdhui=data_zc$`Date de référence`[1]
+date_aujourdhui=as.Date(date_aujourdhui)
+
+
+FEC$maturite=difftime(FEC$date_echeance ,date_aujourdhui)
+FEC$maturite=as.numeric(FEC$maturite)
+
+
+#traduire Buy or Sell : 1 pour le sens Buy , et -1 pour le sens sell
+
+indicatrice =function(x){
+  indice=0
+  x=as.character(x)
+  if (x=="Buy") {indice= 1
+    
+  }
+  if (x=="Sell") {indice= (-1)
+    
+  }
+  return(indice)
+  
+}
+
+FEC$Sens=apply(FEC ,1,function(row) (indicatrice(row[6]))) 
+
+#FEC= FEC %>%
+#mutate(Indice = sapply(FEC$Sens, indicatrice))
+
+
+#calculer de la position Euro :
+
+position_euro=function(BDD){
+  
+  BDD=as.data.frame(BDD)
+  BDD_1 = subset(FEC, Underlying == "EUR" & Currency == "MAD") 
+  return(sum(BDD_1$Sens *BDD_1$Montant_achete))
+  
+}
+print(position_euro(BDD = FEC))
+
+
+#position Euro a l echeance du contrat 
+## P.S : considerons que la date d'aujourdhui est la premiere ligne dans la date zero coupon 
+taux_actualisation_change=function(valeur , echeance){
+  valeur=as.Date(valeur)
+  echance=as.Date(echeance)
+  D=taux_actualisation(dt_val1 = valeur , dt_ech1 = echeance , dt_valorisation1 = date_aujourdhui ,taux_zero_coupon1 = data_zc[1,][-1])
+  return(D[length(D)])
+  
+}
+
+maturite_residuelle=function(valeur1 , echeance1){
+  valeur1=as.Date(valeur1)
+  echeance1=as.Date(echeance1)
+  M=maturite(dt_ech = echeance1 ,dt_val = valeur1 ,dt_valorisation = date_aujourdhui)
+  return(M[length(M)])
+}
+
+# le taux zero coupon d'actualisation  et la matuite residueelle associee a chaque contrat 
+
+FEC$zero_coupon_actualisation=apply(FEC ,1,function(row) (taux_actualisation_change(valeur = row[1], echeance = row[3] ))) # khdama 
+FEC$maturite_resid= apply(FEC,1,function(row) (maturite_residuelle(valeur1 = row[1] ,echeance1 = row[3])))
+
+#valeur actuelle des flux aux maturites 
+
+FEC$valeur_actuelle= (FEC$Sens * FEC$Montant_achete *FEC$Forward_Rate ) *(1/(1+FEC$zero_coupon_actualisation))^(FEC$maturite_resid/365)
+valeur_actuelle_portefeuille =sum(FEC$valeur_actuelle)
+
+#VaR du portefeuille :
+change_position$pl= valeur_actuelle_portefeuille - ( position_euro(FEC) *change_position$change_demain_simule )
+VaR_change=quantile(change_position$pl , 0.01)
+print(VaR_change)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
