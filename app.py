@@ -202,7 +202,7 @@ elif selected == "Calculations":
                 else:
                     returns = data['returns']  # Assuming the dataset has a column named 'returns'
                     var = var_variance_covariance(returns, confidence_level)
-                st.write(f'The calculated VaR at {confidence_level * 100}% confidence level using {method} is: {var}')
+                    st.write(f'The calculated VaR at {confidence_level * 100}% confidence level using {method} is: {var}')
                     
             num_simulations = st.number_input('Choisir le Number of Simulations', min_value=100, max_value=10000, value=6000)
             if st.button('Calculate VaR par MonteCarlo'):
@@ -214,4 +214,5 @@ elif selected == "Calculations":
             
 
 
-# To run the app, save this script and execute: streamlit run your_script_name.py
+# To run the app, save this script and execute: streamlit run your_script_name.py       
+                                                                                        
