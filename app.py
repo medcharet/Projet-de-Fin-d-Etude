@@ -34,7 +34,10 @@ st.sidebar.image(img, caption="")
 a, b, sigma = 0.04413108, 0.0849325, 0.01102
 
 # Import the zero-coupon data
-data_zc = pd.read_excel(r'C:\Users\hp\Desktop\Global folder for PFE\trainig intership\Calculation_VaR\data\data_zc.xlsx')
+url = 'https://raw.githubusercontent.com/medcharet/Projet-de-Fin-d-Etude/main/data_zc.xlsx'
+
+# Lire le fichier Excel
+data_zc = pd.read_excel(url)
 df = data_zc.copy()
 maturities = np.array([1/365.25, 7/365.25, 1/12, 2/12, 3/12, 6/12, 9/12, 1, 2, 3, 4, 5, 6, 
                        7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30])
