@@ -34,10 +34,7 @@ st.sidebar.image(img, caption="")
 a, b, sigma = 0.04413108, 0.0849325, 0.01102
 
 # Import the zero-coupon data
-url = 'https://raw.githubusercontent.com/medcharet/Projet-de-Fin-d-Etude/main/data_zc.xlsx'
-
-# Lire le fichier Excel
-data_zc = pd.read_excel(url)
+data_zc = pd.read_excel(r'C:\Users\hp\Desktop\Global folder for PFE\trainig intership\Calculation_VaR\data\data_zc.xlsx')
 df = data_zc.copy()
 maturities = np.array([1/365.25, 7/365.25, 1/12, 2/12, 3/12, 6/12, 9/12, 1, 2, 3, 4, 5, 6, 
                        7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30])
@@ -177,12 +174,16 @@ elif selected == "Calculations":
     st.write("Téléchargez votre jeu de données pour commencer les calculs de VaR.")
 
     uploaded_file = st.file_uploader('Upload your dataset', type=['csv', 'xlsx'])
+    uploaded_zc_file = st.file_uploader('Upload zero-coupon data file', type=['xlsx'])
 
-    if uploaded_file:
+    if uploaded_file and uploaded_zc_file:
         try:
             data = pd.read_csv(uploaded_file)
         except:
             data = pd.read_excel(uploaded_file)
+
+        data_zc = pd.read_excel(uploaded_zc_file)
+        df = data_zc.copy()
 
         required_columns = ['txno', 'nominal', 'dt/val', 'dt/ech']
         if not all(column in data.columns for column in required_columns):
@@ -215,7 +216,7 @@ elif selected == "Calculations":
                 st.write(BDT_sum_Val_Port_Simule_df)
                 st.write(f'The calculated VaR at {confidence_level * 100}% confidence level using MonteCarlo is: {var}')
             
-
-
 # To run the app, save this script and execute: streamlit run your_script_name.py       
+
+
                                                                                         
